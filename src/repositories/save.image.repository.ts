@@ -12,7 +12,7 @@ import { ProcessedImageDto } from "src/dtos/processed.image.dto";
 @Injectable()
 export class SaveImageRepository {
 
-    @InjectModel(Image.name) private imageRepository: Model<ImageDocument>
+    constructor(@InjectModel(Image.name) private imageRepository: Model<ImageDocument>) {}
  
     async processImage(data: ImageDto): Promise<ProcessedImageDto>{
         const response = await axios.get(data.image, { responseType: 'arraybuffer' });
