@@ -6,24 +6,29 @@ import * as mime from 'mime-types';
 import * as fs from 'fs';
 import axios from "axios";
 import sizeOf from 'image-size';
+import * as sharp from 'sharp';
 import { ImageDto } from "src/dtos/image.dto";
 import { ProcessedImageDto } from "src/dtos/processed.image.dto";
 
 @Injectable()
 export class SaveImageRepository {
 
-    constructor(@InjectModel(Image.name) private imageRepository: Model<ImageDocument>) {}
- 
-    async processImage(data: ImageDto): Promise<ProcessedImageDto>{
+    constructor(@InjectModel(Image.name) private imageRepository: Model<ImageDocument>) { }
+
+    async processImage(data: ImageDto): Promise<ProcessedImageDto> {
         const response = await axios.get(data.image, { responseType: 'arraybuffer' });
-        const fileName = data.image.split('/').pop(); 
+        const fileName = data.image.split('/').pop();
         const filePath = `./src/uploads/original_img/${fileName}`;
         await fs.promises.writeFile(filePath, response.data);
         const dimensions = sizeOf(filePath);
         const mimeType = mime.lookup(filePath);
+        const ext = fileName.split('.').pop();
+        const name = fileName.substring(0, fileName.lastIndexOf('.'))
+        const thumbFileName = `${name}_thumb.${ext}`;
+        const thumbPath = `src/uploads/compressed_img/${thumbFileName}`;
 
         const localpath = {
-            original: fileName,
+            original: filePath,
             thumb: ""
         }
 
@@ -35,19 +40,25 @@ export class SaveImageRepository {
             mime: mimeType
         };
 
-        if(metadata.width < 720){
-            const ext = fileName.split('.').pop();
-            const name = fileName.substring(0, fileName.lastIndexOf('.'));
-            const thumbFileName = `${name}_thumb.${ext}`;
-            const thumbPath = `src/uploads/compressed_img/${thumbFileName}`;
+        if (metadata.width < 720) {
             await fs.promises.writeFile(thumbPath, response.data);
             localpath.thumb = thumbPath;
+        } else {
+            await sharp(filePath)
+                .resize({
+                    width: 720,
+                    height: 720,
+                    fit: 'cover',
+                    position: 'center',
+                })
+                .toFile(thumbPath);
+            localpath.thumb = thumbPath;
         }
-
         return { localpath, metadata }
     }
 
-    async saveMetaDataDb(data: ProcessedImageDto): Promise<ImageDocument>{
-        return new this.imageRepository({ originalName: data.localpath.original, ...data.metadata}).save()
+    async saveMetaDataDb(data: ProcessedImageDto): Promise<ImageDocument> {
+        const fileName = data.localpath.original.split('/').pop();
+        return new this.imageRepository({ originalName: fileName, ...data.metadata }).save()
     }
 }
