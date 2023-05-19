@@ -23,7 +23,7 @@ export class SaveImageRepository {
         const mimeType = mime.lookup(filePath);
 
         const localpath = {
-            original: filePath,
+            original: fileName,
             thumb: ""
         }
 
