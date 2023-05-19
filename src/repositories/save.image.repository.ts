@@ -15,8 +15,6 @@ export class SaveImageRepository {
     @InjectModel(Image.name) private imageRepository: Model<ImageDocument>
  
     async processImage(data: ImageDto): Promise<ProcessedImageDto>{
-
-        console.log(data)
         const response = await axios.get(data.image, { responseType: 'arraybuffer' });
         const fileName = data.image.split('/').pop(); 
         const filePath = `./src/uploads/original_img/${fileName}`;
@@ -49,7 +47,7 @@ export class SaveImageRepository {
         return { localpath, metadata }
     }
 
-    async saveMetaDataDb(data): Promise<ImageDocument>{
+    async saveMetaDataDb(data: ProcessedImageDto): Promise<ImageDocument>{
         return new this.imageRepository({ originalName: data.localpath.original, ...data.metadata}).save()
     }
 }
