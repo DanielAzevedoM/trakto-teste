@@ -28,6 +28,8 @@ Para rodar a aplicação:
 
 $ npm run start:dev
 
+Obs: Você precisa estar rodando o banco de dados mongoDb para que a aplicação funcione.
+
 
 
 
