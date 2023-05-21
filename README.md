@@ -22,11 +22,15 @@ Essa url receberá uma requisição com as seguintes propriedades do body:
 
 Para instalar as depêndencias utilize o comando: 
 
+```
 $ npm install
+```
 
 Para rodar a aplicação:
 
+```
 $ npm run start:dev
+```
 
 Obs: Você precisa estar rodando o banco de dados mongoDb para que a aplicação funcione.
 
